@@ -1,0 +1,93 @@
+name: 'Forward reports to Sonar'
+
+description: 'Forward reports to Sonar'
+
+inputs:
+  # for public repositories
+  sonarcloud_token:
+    description: 'SonarCloud access token'
+    required: false
+    default: 'NO SONARCLOUD ACCESS TOKEN PROVIDED'
+
+  # for private repositories
+  sonarqube_token:
+    description: 'SonarQube access token'
+    required: false
+    default: 'NO SONARQUBE ACCESS TOKEN PROVIDED'
+  sonarqube_host_url:
+    description: 'SonarQube host URL'
+    required: false
+    default: 'NO SONARQUBE HOST URL PROVIDED'
+
+runs:
+  using: "composite"
+
+  steps:
+    - name: Collect generic reports
+      id: test
+      shell: bash
+      run: |
+        # guarantee folder is created
+        mkdir -p ./generic-reports
+
+        # get all files in ./generic-reports
+        generic_reports=$(find ./generic-reports -maxdepth 1 -type f)
+        # join with ,
+        generic_reports=$(echo "${generic_reports[@]}" | tr '\n' ',')
+        # remove last ','
+        generic_reports="${generic_reports::-1}"
+
+        echo "Generic reports: ${generic_reports}"
+        echo ::set-output name=generic_reports::${generic_reports}
+
+    # for public repositories
+    - name: SonarCloud Scan
+      if: ${{ !github.event.repository.private }}
+      uses: SonarSource/sonarcloud-github-action@master
+      env:
+        GITHUB_TOKEN: ${{ github.token }}  # Needed to get PR information, if any
+        SONAR_TOKEN: ${{ inputs.sonarcloud_token }}
+      with:
+        projectBaseDir: ./
+        args: >
+          -Dsonar.organization=mov-ai
+          -Dsonar.projectKey=${{ github.repository_owner }}_${{ github.event.repository.name }}
+          -Dsonar.verbose=true
+          -Dsonar.sources=.
+          -Dsonar.scm.provider=git
+          -Dsonar.qualitygate.wait=true
+          -Dsonar.qualitygate.timeout=300
+          -Dsonar.externalIssuesReportPaths=${{ steps.test.outputs.generic_reports }}
+
+    # for public repositories
+    - name: Link to SonarCloud dashboard
+      if: ${{ !github.event.repository.private }}
+      shell: bash
+      run: |
+        echo "Please check report here: https://sonarcloud.io/project/overview?id=${{ github.repository_owner }}_${{ github.event.repository.name }}"
+
+    # for private repositories
+    - name: SonarQube Scan
+      if: ${{ github.event.repository.private }}
+      uses: SonarSource/sonarqube-scan-action@v1.0.0
+      env:
+        SONAR_TOKEN: ${{ inputs.sonarqube_token }}
+        SONAR_HOST_URL: ${{ inputs.sonarqube_host_url }}
+      with:
+        projectBaseDir: ./
+        args: >
+          -Dsonar.organization=${{ github.repository_owner }}
+          -Dsonar.projectKey=${{ github.event.repository.name }}
+          -Dsonar.verbose=true
+          -Dsonar.sources=.
+          -Dsonar.scm.provider=git
+          -Dsonar.qualitygate.wait=true
+          -Dsonar.qualitygate.timeout=300
+          -Dsonar.externalIssuesReportPaths=${{ steps.test.outputs.generic_reports }}
+
+    # for private repositories
+    - name: Link to SonarQube dashboard
+      if: ${{ github.event.repository.private }}
+      shell: bash
+      run: |
+        echo "Please check report here: ${{ inputs.sonarqube_host_url }}/dashboard?id=${{ github.event.repository.name }}"
