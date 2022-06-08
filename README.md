@@ -50,6 +50,9 @@ jobs:
 
 ### Inputs
 
+- **General inputs**
+  - `qualitygate_timeout` (default: '300') - Quality gate timeout is the number of seconds waited for a report to be processed. See [scanner parameter](https://docs.sonarqube.org/latest/analysis/analysis-parameters/) `sonar.qualitygate.timeout` for more information.
+
 - **Required for public repositories**
   - `sonarqube_token` - Token used to authenticate access to SonarCloud. You can generate a token on your [Security page in SonarCloud](https://sonarcloud.io/account/security/).
 

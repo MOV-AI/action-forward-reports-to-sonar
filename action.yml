@@ -3,6 +3,12 @@ name: 'Forward reports to Sonar'
 description: 'Forward reports to Sonar'
 
 inputs:
+  # general
+  qualitygate_timeout:
+    description: 'Quality gate timeout (number of seconds waited for a report to be processed)'
+    required: false
+    default: '300'
+
   # for public repositories
   sonarcloud_token:
     description: 'SonarCloud access token'
@@ -50,13 +56,13 @@ runs:
       with:
         projectBaseDir: ./
         args: >
-          -Dsonar.organization=mov-ai
+          -Dsonar.organization=${{ github.repository_owner }}
           -Dsonar.projectKey=${{ github.repository_owner }}_${{ github.event.repository.name }}
           -Dsonar.verbose=true
           -Dsonar.sources=.
           -Dsonar.scm.provider=git
           -Dsonar.qualitygate.wait=true
-          -Dsonar.qualitygate.timeout=300
+          -Dsonar.qualitygate.timeout=${{ inputs.qualitygate_timeout }}
           -Dsonar.externalIssuesReportPaths=${{ steps.test.outputs.generic_reports }}
 
     # for public repositories
@@ -82,7 +88,7 @@ runs:
           -Dsonar.sources=.
           -Dsonar.scm.provider=git
           -Dsonar.qualitygate.wait=true
-          -Dsonar.qualitygate.timeout=300
+          -Dsonar.qualitygate.timeout=${{ inputs.qualitygate_timeout }}
           -Dsonar.externalIssuesReportPaths=${{ steps.test.outputs.generic_reports }}
 
     # for private repositories
