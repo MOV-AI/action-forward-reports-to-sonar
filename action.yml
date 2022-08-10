@@ -29,6 +29,18 @@ runs:
   using: "composite"
 
   steps:
+    - name: Get lower case organization name
+      id: test
+      shell: bash
+      # we faced unconsistent issues where the action failed due to a
+      # capital case organization when running the first analysis
+      run: |
+        # organization name to lower case
+        org_name=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+
+        echo "Lower case organization name: ${org_name}"
+        echo ::set-output name=org_name::${org_name}
+
     - name: Collect generic reports
       id: test
       shell: bash
@@ -56,7 +68,7 @@ runs:
       with:
         projectBaseDir: ./
         args: >
-          -Dsonar.organization=${{ github.repository_owner }}
+          -Dsonar.organization=${{ steps.test.outputs.org_name }}
           -Dsonar.projectKey=${{ github.repository_owner }}_${{ github.event.repository.name }}
           -Dsonar.verbose=true
           -Dsonar.sources=.
@@ -82,7 +94,7 @@ runs:
       with:
         projectBaseDir: ./
         args: >
-          -Dsonar.organization=${{ github.repository_owner }}
+          -Dsonar.organization=${{ steps.test.outputs.org_name }}
           -Dsonar.projectKey=${{ github.event.repository.name }}
           -Dsonar.verbose=true
           -Dsonar.sources=.
