@@ -56,7 +56,7 @@ runs:
       with:
         projectBaseDir: ./
         args: >
-          -Dsonar.organization=mov-ai
+          -Dsonar.organization=${{ github.repository_owner }}
           -Dsonar.projectKey=${{ github.repository_owner }}_${{ github.event.repository.name }}
           -Dsonar.verbose=true
           -Dsonar.sources=.
