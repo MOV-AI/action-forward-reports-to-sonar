@@ -30,7 +30,7 @@ runs:
 
   steps:
     - name: Get lower case organization name
-      id: test
+      id: org
       shell: bash
       # we faced unconsistent issues where the action failed due to a
       # capital case organization when running the first analysis
@@ -42,7 +42,7 @@ runs:
         echo ::set-output name=org_name::${org_name}
 
     - name: Collect generic reports
-      id: test
+      id: generic
       shell: bash
       run: |
         # guarantee folder is created
@@ -68,14 +68,14 @@ runs:
       with:
         projectBaseDir: ./
         args: >
-          -Dsonar.organization=${{ steps.test.outputs.org_name }}
+          -Dsonar.organization=${{ steps.org.outputs.org_name }}
           -Dsonar.projectKey=${{ github.repository_owner }}_${{ github.event.repository.name }}
           -Dsonar.verbose=true
           -Dsonar.sources=.
           -Dsonar.scm.provider=git
           -Dsonar.qualitygate.wait=true
           -Dsonar.qualitygate.timeout=${{ inputs.qualitygate_timeout }}
-          -Dsonar.externalIssuesReportPaths=${{ steps.test.outputs.generic_reports }}
+          -Dsonar.externalIssuesReportPaths=${{ steps.generic.outputs.generic_reports }}
 
     # for public repositories
     - name: Link to SonarCloud dashboard
@@ -94,14 +94,14 @@ runs:
       with:
         projectBaseDir: ./
         args: >
-          -Dsonar.organization=${{ steps.test.outputs.org_name }}
+          -Dsonar.organization=${{ steps.org.outputs.org_name }}
           -Dsonar.projectKey=${{ github.event.repository.name }}
           -Dsonar.verbose=true
           -Dsonar.sources=.
           -Dsonar.scm.provider=git
           -Dsonar.qualitygate.wait=true
           -Dsonar.qualitygate.timeout=${{ inputs.qualitygate_timeout }}
-          -Dsonar.externalIssuesReportPaths=${{ steps.test.outputs.generic_reports }}
+          -Dsonar.externalIssuesReportPaths=${{ steps.generic.outputs.generic_reports }}
 
     # for private repositories
     - name: Link to SonarQube dashboard
