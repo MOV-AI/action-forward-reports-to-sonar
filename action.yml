@@ -76,6 +76,7 @@ runs:
           -Dsonar.qualitygate.wait=true
           -Dsonar.qualitygate.timeout=${{ inputs.qualitygate_timeout }}
           -Dsonar.externalIssuesReportPaths=${{ steps.generic.outputs.generic_reports }}
+          -Dsonar.python.coverage.reportPaths=coverage.xml
 
     # for public repositories
     - name: Link to SonarCloud dashboard
