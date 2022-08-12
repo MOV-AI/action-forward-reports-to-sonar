@@ -8,6 +8,10 @@ inputs:
     description: 'Quality gate timeout (number of seconds waited for a report to be processed)'
     required: false
     default: '300'
+  sonar_args:
+    description: 'SonarScanner arguments'
+    required: false
+    default: ''
 
   # for public repositories
   sonarcloud_token:
@@ -76,6 +80,7 @@ runs:
           -Dsonar.qualitygate.wait=true
           -Dsonar.qualitygate.timeout=${{ inputs.qualitygate_timeout }}
           -Dsonar.externalIssuesReportPaths=${{ steps.generic.outputs.generic_reports }}
+          ${{ inputs.sonar_args }}
 
     # for public repositories
     - name: Link to SonarCloud dashboard
@@ -102,6 +107,7 @@ runs:
           -Dsonar.qualitygate.wait=true
           -Dsonar.qualitygate.timeout=${{ inputs.qualitygate_timeout }}
           -Dsonar.externalIssuesReportPaths=${{ steps.generic.outputs.generic_reports }}
+          ${{ inputs.sonar_args }}
 
     # for private repositories
     - name: Link to SonarQube dashboard
